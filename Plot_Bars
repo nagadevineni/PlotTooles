@@ -1,0 +1,55 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_grouped_bar_chart_with_percentages(df, x_column, y_column):
+    """
+    Generates a grouped bar plot where:
+    - x-axis represents unique values from `x_column`.
+    - Bars represent occurrences of different values in `y_column`.
+    - Each bar is labeled with the percentage of occurrences.
+    """
+    if x_column not in df.columns or y_column not in df.columns:
+        print(f"One or both columns '{x_column}', '{y_column}' not found in the DataFrame.")
+        return
+
+    # Set plot style
+    plt.figure(figsize=(12, 6))
+    sns.set_style("whitegrid")
+
+    # Create count data for percentage calculation
+    count_data = df.groupby([x_column, y_column]).size().reset_index(name="count")
+    total_counts = count_data.groupby(x_column)["count"].transform("sum")
+    count_data["percentage"] = (count_data["count"] / total_counts) * 100  # Convert to percentage
+
+    # Create a count plot with grouping by y_column
+    ax = sns.barplot(data=count_data, x=x_column, y="count", hue=y_column, palette="viridis")
+
+    # Add percentage labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        if height > 0:
+            ax.annotate(f"{height:.0f} ({(height / total_counts[count_data[x_column] == p.get_x()].values[0]) * 100:.1f}%)",
+                        (p.get_x() + p.get_width() / 2., height),
+                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
+
+    # Labels and title
+    plt.xlabel(x_column, fontsize=12)
+    plt.ylabel("Count", fontsize=12)
+    plt.title(f"Occurrences of {y_column} for each {x_column} (with Percentage Labels)", fontsize=14)
+
+    # Rotate x-axis labels if necessary
+    plt.xticks(rotation=45)
+
+    # Show plot
+    plt.show()
+
+# Example usage with a sample DataFrame
+import numpy as np
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "X_Column": np.random.choice(["A", "B", "C", "D", "E"], 200),  # Categories on x-axis
+    "Y_Column": np.random.choice(["Red", "Blue", "Green"], 200)  # Different bar segments
+})
+
+plot_grouped_bar_chart_with_percentages(df_sample, "X_Column", "Y_Column")
