@@ -116,3 +116,65 @@ df_sample = pd.DataFrame({
 
 # Save the figure as a PNG file
 plot_single_column_bar_chart(df_sample, "Category", save_path="single_column_bar_chart.png")
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_average_per_variant(df, value_column, variant_column, save_path=None):
+    """
+    Generates a bar plot where:
+    - The x-axis represents unique variants from `variant_column`.
+    - The y-axis represents the average of `value_column` for each variant.
+    - Each bar is labeled with its average value.
+    """
+    if value_column not in df.columns or variant_column not in df.columns:
+        print(f"One or both columns '{value_column}', '{variant_column}' not found in the DataFrame.")
+        return
+
+    # Set plot style
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+
+    # Create a bar plot with mean aggregation
+    ax = sns.barplot(data=df, x=variant_column, y=value_column, estimator=pd.Series.mean, palette="viridis")
+
+    # Add labels on top of bars
+    for bar in ax.patches:
+        height = bar.get_height()
+        if not pd.isna(height):  # Avoid NaN values
+            ax.annotate(f"{height:.2f}", 
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
+
+    # Labels and title
+    plt.xlabel(variant_column, fontsize=12)
+    plt.ylabel(f"Average {value_column}", fontsize=12)
+    plt.title(f"Average {value_column} per {variant_column}", fontsize=14)
+
+    # Rotate x-axis labels if necessary
+    plt.xticks(rotation=45)
+
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+
+    # ✅ Save the figure **before** showing it
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved as: {save_path}")
+
+    # ✅ Now show the plot
+    plt.show()
+
+# Example usage with a sample DataFrame
+import numpy as np
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "Variant": np.random.choice(["A", "B", "C", "D", "E"], 200),  # Variant categories
+    "Value": np.random.rand(200) * 100  # Numerical values
+})
+
+# Save the figure as a PNG file
+plot_average_per_variant(df_sample, "Value", "Variant", save_path="average_per_variant.png")
