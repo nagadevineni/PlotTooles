@@ -53,3 +53,66 @@ df_sample = pd.DataFrame({
 })
 
 plot_grouped_bar_chart_with_percentages(df_sample, "X_Column", "Y_Column")
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_single_column_bar_chart(df, column, save_path=None):
+    """
+    Generates a bar plot showing the count of unique values in a single column.
+    Each bar is labeled with the percentage of occurrences.
+    """
+    if column not in df.columns:
+        print(f"Column '{column}' not found in the DataFrame.")
+        return
+
+    # Set plot style
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+
+    # Compute counts and percentages
+    count_data = df[column].value_counts().reset_index()
+    count_data.columns = [column, "count"]
+    count_data["percentage"] = (count_data["count"] / count_data["count"].sum()) * 100  # Convert to percentage
+
+    # Create a bar plot
+    ax = sns.barplot(data=count_data, x=column, y="count", palette="viridis")
+
+    # Add percentage labels on bars
+    for bar, (value, count, percentage) in zip(ax.patches, count_data.values):
+        height = bar.get_height()
+        if height > 0:
+            ax.annotate(f"{count}\n({percentage:.1f}%)",  # New line for better readability
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold', rotation=90)
+
+    # Labels and title
+    plt.xlabel(column, fontsize=12)
+    plt.ylabel("Count", fontsize=12)
+    plt.title(f"Distribution of {column} (with Percentage Labels)", fontsize=14)
+
+    # Rotate x-axis labels if necessary
+    plt.xticks(rotation=45)
+
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+
+    # ✅ Save the figure **before** showing it
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved as: {save_path}")
+
+    # ✅ Now show the plot
+    plt.show()
+
+# Example usage with a single categorical column
+import numpy as np
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "Category": np.random.choice(["Apple", "Banana", "Orange", "Grapes", "Mango"], 200)  # Single column
+})
+
+# Save the figure as a PNG file
+plot_single_column_bar_chart(df_sample, "Category", save_path="single_column_bar_chart.png")
