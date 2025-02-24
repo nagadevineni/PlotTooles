@@ -17,21 +17,28 @@ def plot_grouped_bar_chart_with_percentages(df, x_column, y_column):
     plt.figure(figsize=(12, 6))
     sns.set_style("whitegrid")
 
-    # Create count data for percentage calculation
+    # Compute counts and percentages
     count_data = df.groupby([x_column, y_column]).size().reset_index(name="count")
     total_counts = count_data.groupby(x_column)["count"].transform("sum")
     count_data["percentage"] = (count_data["count"] / total_counts) * 100  # Convert to percentage
 
-    # Create a count plot with grouping by y_column
+    # Create a count plot
     ax = sns.barplot(data=count_data, x=x_column, y="count", hue=y_column, palette="viridis")
 
     # Add percentage labels on bars
-    for p in ax.patches:
-        height = p.get_height()
-        if height > 0:
-            ax.annotate(f"{height:.0f} ({(height / total_counts[count_data[x_column] == p.get_x()].values[0]) * 100:.1f}%)",
-                        (p.get_x() + p.get_width() / 2., height),
-                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
+    for container in ax.containers:
+        for bar in container:
+            height = bar.get_height()
+            if height > 0:
+                x_position = bar.get_x() + bar.get_width() / 2
+                count_value = int(height)  # Convert count to integer
+                # Get corresponding percentage
+                match = count_data[(count_data[x_column] == bar.get_x()) & (count_data["count"] == count_value)]
+                if not match.empty:
+                    percentage_value = match["percentage"].values[0]
+                    ax.annotate(f"{count_value} ({percentage_value:.1f}%)",
+                                xy=(x_position, height),
+                                ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
 
     # Labels and title
     plt.xlabel(x_column, fontsize=12)
