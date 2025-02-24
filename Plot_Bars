@@ -5,7 +5,7 @@ import seaborn as sns
 def plot_grouped_bar_chart_with_percentages(df, x_column, y_column):
     """
     Generates a grouped bar plot where:
-    - x-axis represents unique values from `x_column`.
+    - The x-axis represents unique values from `x_column`.
     - Bars represent occurrences of different values in `y_column`.
     - Each bar is labeled with the percentage of occurrences.
     """
@@ -22,23 +22,16 @@ def plot_grouped_bar_chart_with_percentages(df, x_column, y_column):
     total_counts = count_data.groupby(x_column)["count"].transform("sum")
     count_data["percentage"] = (count_data["count"] / total_counts) * 100  # Convert to percentage
 
-    # Create a count plot
+    # Create a bar plot
     ax = sns.barplot(data=count_data, x=x_column, y="count", hue=y_column, palette="viridis")
 
     # Add percentage labels on bars
-    for container in ax.containers:
-        for bar in container:
-            height = bar.get_height()
-            if height > 0:
-                x_position = bar.get_x() + bar.get_width() / 2
-                count_value = int(height)  # Convert count to integer
-                # Get corresponding percentage
-                match = count_data[(count_data[x_column] == bar.get_x()) & (count_data["count"] == count_value)]
-                if not match.empty:
-                    percentage_value = match["percentage"].values[0]
-                    ax.annotate(f"{count_value} ({percentage_value:.1f}%)",
-                                xy=(x_position, height),
-                                ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
+    for bar, (x_val, y_val, count, percentage) in zip(ax.patches, count_data.values):
+        height = bar.get_height()
+        if height > 0:
+            ax.annotate(f"{count} ({percentage:.1f}%)", 
+                        xy=(bar.get_x() + bar.get_width() / 2, height), 
+                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
 
     # Labels and title
     plt.xlabel(x_column, fontsize=12)
