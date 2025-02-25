@@ -76,3 +76,96 @@ df_sample = pd.DataFrame({
 
 # Save the figure as a PNG file
 plot_100_stacked_bar_chart(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages_fixed.png")
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_100_stacked_bar_chart_with_table(df, x_column, group_column, save_path=None):
+    """
+    Generates:
+    - A 100% stacked bar plot where:
+      - x-axis represents unique values from `x_column`.
+      - y-axis shows percentage distribution within each `x_column` category.
+      - Bars are **stacked** by `group_column` so each category sums to 100%.
+      - Each stacked segment is labeled with its correct percentage.
+    - A table displaying **counts and percentages** per category and group.
+    """
+    if x_column not in df.columns or group_column not in df.columns:
+        print(f"One or both columns '{x_column}', '{group_column}' not found in the DataFrame.")
+        return
+
+    # Compute counts for each (x_column, group_column) pair
+    count_data = df.groupby([x_column, group_column]).size().reset_index(name="count")
+
+    # Compute total count per category in x_column
+    total_counts_per_category = count_data.groupby(x_column)["count"].transform("sum")
+
+    # Compute percentage per group within each category
+    count_data["percentage"] = (count_data["count"] / total_counts_per_category) * 100
+
+    # Pivot the dataframe for stacking
+    pivot_df = count_data.pivot(index=x_column, columns=group_column, values="percentage").fillna(0)
+
+    # Set plot style
+    plt.figure(figsize=(12, 6))
+    sns.set_style("whitegrid")
+
+    # Plot 100% stacked bar chart
+    ax = pivot_df.plot(kind="bar", stacked=True, colormap="viridis", edgecolor="black", figsize=(12, 6))
+
+    # Add percentage labels inside each segment
+    for i, category in enumerate(pivot_df.index):
+        cumulative_height = 0  # Track stacking height
+        for group in pivot_df.columns:
+            value = pivot_df.loc[category, group]
+            if value > 0:
+                ax.text(i, cumulative_height + value / 2, f"{value:.1f}%", 
+                        ha='center', va='center', fontsize=10, color='black', fontweight='bold')
+            cumulative_height += value
+
+    # Labels and title
+    plt.xlabel(x_column, fontsize=12)
+    plt.ylabel("Percentage", fontsize=12)
+    plt.title(f"100% Stacked Bar Chart of {x_column} grouped by {group_column}", fontsize=14)
+
+    # Ensure y-axis is in percentage format
+    plt.ylim(0, 100)
+    plt.legend(title=group_column, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Rotate x-axis labels if necessary
+    plt.xticks(rotation=45)
+
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+
+    # ✅ Save the figure **before** showing it
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved as: {save_path}")
+
+    # ✅ Now show the plot
+    plt.show()
+
+    # Create a table with counts and percentages for each category and group
+    count_table = count_data.pivot(index=x_column, columns=group_column, values="count").fillna(0)
+    percentage_table = count_data.pivot(index=x_column, columns=group_column, values="percentage").fillna(0)
+
+    # Combine count and percentage into a single DataFrame for display
+    final_table = count_table.astype(int).astype(str) + " (" + percentage_table.round(1).astype(str) + "%)"
+    
+    # Display the table
+    print("\nCounts and Percentages Table:")
+    print(final_table)
+
+# Example usage with a sample DataFrame
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "Category": np.random.choice(["A", "B", "C", "D", "E"], 200),  # Categories on x-axis
+    "Group": np.random.choice(["Red", "Blue", "Green"], 200)  # Different bar segments
+})
+
+# Save the figure as a PNG file
+plot_100_stacked_bar_chart_with_table(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages.png")
