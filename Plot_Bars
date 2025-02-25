@@ -224,3 +224,78 @@ df_sample = pd.DataFrame({
 
 # Plot the scatter plot
 plot_categorical_scatter(df_sample, "Feature_X", "Feature_Y", "Category")
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.optimize import curve_fit
+
+def polynomial_fit(x, a, b, c):
+    """Second-degree polynomial function for curve fitting."""
+    return a * x**2 + b * x + c
+
+def plot_categorical_scatter_with_fits(df, x_column, y_column, category_column, save_path=None):
+    """
+    Generates a scatter plot where:
+    - x-axis represents values from `x_column`.
+    - y-axis represents values from `y_column`.
+    - Color and style of points are determined by `category_column` (categorical values).
+    - A separate curve is fitted for each category.
+    """
+    if x_column not in df.columns or y_column not in df.columns or category_column not in df.columns:
+        print(f"One or more columns '{x_column}', '{y_column}', or '{category_column}' not found in the DataFrame.")
+        return
+
+    # Set plot style
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+
+    # Scatter plot with different colors and styles for categories
+    scatter = sns.scatterplot(
+        data=df, x=x_column, y=y_column, hue=category_column, style=category_column, palette="viridis", s=100, edgecolor="black"
+    )
+
+    # Fit a curve for each category
+    unique_categories = df[category_column].unique()
+    for category in unique_categories:
+        category_data = df[df[category_column] == category]
+        x_data = category_data[x_column]
+        y_data = category_data[y_column]
+
+        # Fit a polynomial curve
+        try:
+            params, _ = curve_fit(polynomial_fit, x_data, y_data)
+            x_range = np.linspace(x_data.min(), x_data.max(), 100)
+            y_fit = polynomial_fit(x_range, *params)
+            plt.plot(x_range, y_fit, linestyle='dashed', label=f"{category} Fit")
+        except Exception as e:
+            print(f"Could not fit curve for category '{category}': {e}")
+
+    # Labels and title
+    plt.xlabel(x_column, fontsize=12)
+    plt.ylabel(y_column, fontsize=12)
+    plt.title(f"Scatter Plot of {x_column} vs {y_column} (Categorical: {category_column}) with Fitted Curves", fontsize=14)
+    plt.legend(title=category_column, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # ✅ Save the figure if a path is provided
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved as: {save_path}")
+
+    # ✅ Show the plot
+    plt.show()
+
+# Example usage with a sample DataFrame
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "Feature_X": np.random.rand(100) * 100,  # X-axis values
+    "Feature_Y": np.random.rand(100) * 100,  # Y-axis values
+    "Category": np.random.choice(["A", "B", "C"], 100)  # Categorical values
+})
+
+# Plot the scatter plot with fitted curves
+plot_categorical_scatter_with_fits(df_sample, "Feature_X", "Feature_Y", "Category")
