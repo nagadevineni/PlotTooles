@@ -1,12 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-def plot_stacked_bar_chart_with_percentages(df, x_column, group_column, save_path=None):
+def plot_100_stacked_bar_chart(df, x_column, group_column, save_path=None):
     """
     Generates a 100% stacked bar plot where:
-    - The x-axis represents unique values from `x_column`.
-    - The y-axis shows percentage distribution within each `x_column` category.
-    - Bars are stacked by `group_column` so each category sums to 100%.
+    - x-axis represents unique values from `x_column`.
+    - y-axis shows percentage distribution within each `x_column` category.
+    - Bars are **stacked** by `group_column` so each category sums to 100%.
     - Each stacked segment is labeled with its correct percentage.
     """
     if x_column not in df.columns or group_column not in df.columns:
@@ -27,8 +28,9 @@ def plot_stacked_bar_chart_with_percentages(df, x_column, group_column, save_pat
 
     # Set plot style
     plt.figure(figsize=(12, 6))
+    sns.set_style("whitegrid")
 
-    # Create a 100% stacked bar plot
+    # Plot 100% stacked bar chart
     ax = pivot_df.plot(kind="bar", stacked=True, colormap="viridis", edgecolor="black", figsize=(12, 6))
 
     # Add percentage labels inside each segment
@@ -73,4 +75,4 @@ df_sample = pd.DataFrame({
 })
 
 # Save the figure as a PNG file
-plot_stacked_bar_chart_with_percentages(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages.png")
+plot_100_stacked_bar_chart(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages_fixed.png")
