@@ -169,3 +169,59 @@ df_sample = pd.DataFrame({
 
 # Save the figure as a PNG file
 plot_100_stacked_bar_chart_with_table(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages.png")
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_3d_scatter_with_color(df, x_column, y_column, color_column, save_path=None):
+    """
+    Generates a scatter plot where:
+    - x-axis represents values from `x_column`.
+    - y-axis represents values from `y_column`.
+    - Color of points is determined by `color_column`.
+    """
+    if x_column not in df.columns or y_column not in df.columns or color_column not in df.columns:
+        print(f"One or more columns '{x_column}', '{y_column}', or '{color_column}' not found in the DataFrame.")
+        return
+
+    # Set plot style
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+
+    # Create scatter plot with color mapping
+    scatter = plt.scatter(df[x_column], df[y_column], c=df[color_column], cmap="viridis", alpha=0.7, edgecolors="black")
+
+    # Add color bar
+    cbar = plt.colorbar(scatter)
+    cbar.set_label(color_column)
+
+    # Labels and title
+    plt.xlabel(x_column, fontsize=12)
+    plt.ylabel(y_column, fontsize=12)
+    plt.title(f"Scatter Plot of {x_column} vs {y_column} (Color: {color_column})", fontsize=14)
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # ✅ Save the figure if a path is provided
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Figure saved as: {save_path}")
+
+    # ✅ Show the plot
+    plt.show()
+
+# Example usage with a sample DataFrame
+import numpy as np
+np.random.seed(42)
+df_sample = pd.DataFrame({
+    "Feature_X": np.random.rand(100) * 100,  # X-axis values
+    "Feature_Y": np.random.rand(100) * 100,  # Y-axis values
+    "Feature_Color": np.random.rand(100) * 100  # Color values
+})
+
+# Plot the scatter plot
+plot_3d_scatter_with_color(df_sample, "Feature_X", "Feature_Y", "Feature_Color")
