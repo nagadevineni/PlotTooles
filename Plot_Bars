@@ -1,201 +1,19 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-def plot_grouped_bar_chart_with_percentages(df, x_column, y_column):
+def plot_stacked_bar_chart_with_percentages(df, x_column, group_column, save_path=None):
     """
-    Generates a grouped bar plot where:
+    Generates a 100% stacked bar plot where:
     - The x-axis represents unique values from `x_column`.
-    - Bars represent occurrences of different values in `y_column`.
-    - Each bar is labeled with the percentage of occurrences.
-    """
-    if x_column not in df.columns or y_column not in df.columns:
-        print(f"One or both columns '{x_column}', '{y_column}' not found in the DataFrame.")
-        return
-
-    # Set plot style
-    plt.figure(figsize=(12, 6))
-    sns.set_style("whitegrid")
-
-    # Compute counts and percentages
-    count_data = df.groupby([x_column, y_column]).size().reset_index(name="count")
-    total_counts = count_data.groupby(x_column)["count"].transform("sum")
-    count_data["percentage"] = (count_data["count"] / total_counts) * 100  # Convert to percentage
-
-    # Create a bar plot
-    ax = sns.barplot(data=count_data, x=x_column, y="count", hue=y_column, palette="viridis")
-
-    # Add percentage labels on bars
-    for bar, (x_val, y_val, count, percentage) in zip(ax.patches, count_data.values):
-        height = bar.get_height()
-        if height > 0:
-            ax.annotate(f"{count} ({percentage:.1f}%)", 
-                        xy=(bar.get_x() + bar.get_width() / 2, height), 
-                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
-
-    # Labels and title
-    plt.xlabel(x_column, fontsize=12)
-    plt.ylabel("Count", fontsize=12)
-    plt.title(f"Occurrences of {y_column} for each {x_column} (with Percentage Labels)", fontsize=14)
-
-    # Rotate x-axis labels if necessary
-    plt.xticks(rotation=45)
-
-    # Show plot
-    plt.show()
-
-# Example usage with a sample DataFrame
-import numpy as np
-np.random.seed(42)
-df_sample = pd.DataFrame({
-    "X_Column": np.random.choice(["A", "B", "C", "D", "E"], 200),  # Categories on x-axis
-    "Y_Column": np.random.choice(["Red", "Blue", "Green"], 200)  # Different bar segments
-})
-
-plot_grouped_bar_chart_with_percentages(df_sample, "X_Column", "Y_Column")
-
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-def plot_single_column_bar_chart(df, column, save_path=None):
-    """
-    Generates a bar plot showing the count of unique values in a single column.
-    Each bar is labeled with the percentage of occurrences.
-    """
-    if column not in df.columns:
-        print(f"Column '{column}' not found in the DataFrame.")
-        return
-
-    # Set plot style
-    plt.figure(figsize=(10, 6))
-    sns.set_style("whitegrid")
-
-    # Compute counts and percentages
-    count_data = df[column].value_counts().reset_index()
-    count_data.columns = [column, "count"]
-    count_data["percentage"] = (count_data["count"] / count_data["count"].sum()) * 100  # Convert to percentage
-
-    # Create a bar plot
-    ax = sns.barplot(data=count_data, x=column, y="count", palette="viridis")
-
-    # Add percentage labels on bars
-    for bar, (value, count, percentage) in zip(ax.patches, count_data.values):
-        height = bar.get_height()
-        if height > 0:
-            ax.annotate(f"{count}\n({percentage:.1f}%)",  # New line for better readability
-                        xy=(bar.get_x() + bar.get_width() / 2, height),
-                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold', rotation=90)
-
-    # Labels and title
-    plt.xlabel(column, fontsize=12)
-    plt.ylabel("Count", fontsize=12)
-    plt.title(f"Distribution of {column} (with Percentage Labels)", fontsize=14)
-
-    # Rotate x-axis labels if necessary
-    plt.xticks(rotation=45)
-
-    # Adjust layout to prevent label cutoff
-    plt.tight_layout()
-
-    # ✅ Save the figure **before** showing it
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"Figure saved as: {save_path}")
-
-    # ✅ Now show the plot
-    plt.show()
-
-# Example usage with a single categorical column
-import numpy as np
-np.random.seed(42)
-df_sample = pd.DataFrame({
-    "Category": np.random.choice(["Apple", "Banana", "Orange", "Grapes", "Mango"], 200)  # Single column
-})
-
-# Save the figure as a PNG file
-plot_single_column_bar_chart(df_sample, "Category", save_path="single_column_bar_chart.png")
-
-
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-def plot_average_per_variant(df, value_column, variant_column, save_path=None):
-    """
-    Generates a bar plot where:
-    - The x-axis represents unique variants from `variant_column`.
-    - The y-axis represents the average of `value_column` for each variant.
-    - Each bar is labeled with its average value.
-    """
-    if value_column not in df.columns or variant_column not in df.columns:
-        print(f"One or both columns '{value_column}', '{variant_column}' not found in the DataFrame.")
-        return
-
-    # Set plot style
-    plt.figure(figsize=(10, 6))
-    sns.set_style("whitegrid")
-
-    # Create a bar plot with mean aggregation
-    ax = sns.barplot(data=df, x=variant_column, y=value_column, estimator=pd.Series.mean, palette="viridis")
-
-    # Add labels on top of bars
-    for bar in ax.patches:
-        height = bar.get_height()
-        if not pd.isna(height):  # Avoid NaN values
-            ax.annotate(f"{height:.2f}", 
-                        xy=(bar.get_x() + bar.get_width() / 2, height),
-                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
-
-    # Labels and title
-    plt.xlabel(variant_column, fontsize=12)
-    plt.ylabel(f"Average {value_column}", fontsize=12)
-    plt.title(f"Average {value_column} per {variant_column}", fontsize=14)
-
-    # Rotate x-axis labels if necessary
-    plt.xticks(rotation=45)
-
-    # Adjust layout to prevent label cutoff
-    plt.tight_layout()
-
-    # ✅ Save the figure **before** showing it
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"Figure saved as: {save_path}")
-
-    # ✅ Now show the plot
-    plt.show()
-
-# Example usage with a sample DataFrame
-import numpy as np
-np.random.seed(42)
-df_sample = pd.DataFrame({
-    "Variant": np.random.choice(["A", "B", "C", "D", "E"], 200),  # Variant categories
-    "Value": np.random.rand(200) * 100  # Numerical values
-})
-
-# Save the figure as a PNG file
-plot_average_per_variant(df_sample, "Value", "Variant", save_path="average_per_variant.png")
-
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-def plot_grouped_bar_chart_with_percentages(df, x_column, group_column, save_path=None):
-    """
-    Generates a grouped bar plot where:
-    - x-axis represents unique values from `x_column`.
-    - y-axis shows the count of values in `x_column`, grouped by `group_column`.
-    - Each bar is labeled with the correct percentage (ensuring it sums to 100% per category).
+    - The y-axis shows percentage distribution within each `x_column` category.
+    - Bars are stacked by `group_column` so each category sums to 100%.
+    - Each stacked segment is labeled with its correct percentage.
     """
     if x_column not in df.columns or group_column not in df.columns:
         print(f"One or both columns '{x_column}', '{group_column}' not found in the DataFrame.")
         return
 
-    # Compute counts per (x_column, group_column) pair
+    # Compute counts for each (x_column, group_column) pair
     count_data = df.groupby([x_column, group_column]).size().reset_index(name="count")
 
     # Compute total count per category in x_column
@@ -204,25 +22,33 @@ def plot_grouped_bar_chart_with_percentages(df, x_column, group_column, save_pat
     # Compute percentage per group within each category
     count_data["percentage"] = (count_data["count"] / total_counts_per_category) * 100
 
+    # Pivot the dataframe for stacking
+    pivot_df = count_data.pivot(index=x_column, columns=group_column, values="percentage").fillna(0)
+
     # Set plot style
     plt.figure(figsize=(12, 6))
-    sns.set_style("whitegrid")
 
-    # Create a bar plot with grouping by group_column
-    ax = sns.barplot(data=count_data, x=x_column, y="count", hue=group_column, palette="viridis")
+    # Create a 100% stacked bar plot
+    ax = pivot_df.plot(kind="bar", stacked=True, colormap="viridis", edgecolor="black", figsize=(12, 6))
 
-    # Add percentage labels ensuring they add to 100% per category
-    for bar, (category, group, count, percentage) in zip(ax.patches, count_data.values):
-        height = bar.get_height()
-        if height > 0:
-            ax.annotate(f"{percentage:.1f}%",  
-                        xy=(bar.get_x() + bar.get_width() / 2, height),
-                        ha='center', va='bottom', fontsize=10, color='black', fontweight='bold')
+    # Add percentage labels inside each segment
+    for i, category in enumerate(pivot_df.index):
+        cumulative_height = 0  # Track stacking height
+        for group in pivot_df.columns:
+            value = pivot_df.loc[category, group]
+            if value > 0:
+                ax.text(i, cumulative_height + value / 2, f"{value:.1f}%", 
+                        ha='center', va='center', fontsize=10, color='black', fontweight='bold')
+            cumulative_height += value
 
     # Labels and title
     plt.xlabel(x_column, fontsize=12)
-    plt.ylabel("Count", fontsize=12)
-    plt.title(f"Distribution of {x_column} grouped by {group_column} (100% Stacked)", fontsize=14)
+    plt.ylabel("Percentage", fontsize=12)
+    plt.title(f"100% Stacked Bar Chart of {x_column} grouped by {group_column}", fontsize=14)
+
+    # Ensure y-axis is in percentage format
+    plt.ylim(0, 100)
+    plt.legend(title=group_column, bbox_to_anchor=(1.05, 1), loc='upper left')
 
     # Rotate x-axis labels if necessary
     plt.xticks(rotation=45)
@@ -247,6 +73,4 @@ df_sample = pd.DataFrame({
 })
 
 # Save the figure as a PNG file
-plot_grouped_bar_chart_with_percentages(df_sample, "Category", "Group", save_path="grouped_bar_chart_with_percentages_fixed.png")
-
-
+plot_stacked_bar_chart_with_percentages(df_sample, "Category", "Group", save_path="stacked_bar_chart_with_percentages.png")
